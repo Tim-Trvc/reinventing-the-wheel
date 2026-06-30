@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <cassert>
 #include <cstddef>
@@ -9,7 +11,7 @@ struct DynamicArrayTable {
   std::vector<T*> frames;
 
   T* allocate_frame() {
-    T* new_frame = (T*) std::malloc(frame_size);
+    T* new_frame = (T*) std::malloc(frame_size * sizeof(T));
 
     if (new_frame == nullptr) {
       // TODO implement error handling
@@ -25,6 +27,12 @@ struct DynamicArrayTable {
       this->frames.push_back(frame);
     }
   }
+
+  ~DynamicArrayTable() {
+    for (auto& frame : this->frames) {
+      free(frame);
+    }
+  }
 };
 
 template <typename T>
@@ -32,16 +40,17 @@ struct DynamicArray {
   DynamicArrayTable<T> table;
 
   DynamicArray(std::size_t initial_size, std::size_t frame_size) {
-    DynamicArrayTable<T> dArrTable = {
+    table = {
       .frame_size = frame_size,
     };
 
-    dArrTable.init_frames(5);
-    table = dArrTable;
+    table.init_frames(5);
   }
 
-  DynamicArray(std::size_t initial_size) {
-    DynamicArray(initial_size, initial_size);
+  DynamicArray(std::size_t initial_size) : DynamicArray(initial_size, initial_size) {
+  }
+
+  ~DynamicArray() {
   }
 
   T& operator[](std::size_t position) {
